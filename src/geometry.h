@@ -195,13 +195,12 @@ struct oshu_point oshu_segment_derive(struct oshu_segment *segment, double t);
  *
  */
 struct oshu_path {
+	enum oshu_curve_type type;
 	/**
 	 * Length of the segment, in an arbitrary unit.
 	 * The sum of the length of all its segment should be equal to this.
 	 */
 	double length;
-	int size; /**< How many segments. */
-	struct oshu_segment *segments;
 };
 
 /**

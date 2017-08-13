@@ -162,21 +162,45 @@ static int parse_general(char *line, struct parser_state *parser)
 }
 
 /**
+ * Parse curve points of a #OSHU_HIT_SLIDER.
+ */
+static void compute_linear_slider(char *curve_points, struct oshu_hit *hit)
+{
+	hit->slider.path.size = 1;
+	struct oshu_segment *segment = calloc(1, sizeof(oshu_segment));
+	segment->type = 
+	hit->slider.path.segments = segment;
+}
+
+/**
+ * Parse specific parts of a slider
+ */
+static void parse_slider(char *line, struct oshu_hit *hit)
+{
+	oshu_log_info("slider: %s", line);
+	char slider_type = *strsep(&line, "|");
+	char *curve_points = strsep(&line, ",");
+	char *repeat = strsep(&line, ",");
+	char *pixel_length = strsep(&line, ",");
+	hit->slider.repeat = atoi(repeat);
+}
+
+/**
  * Parse specific parts of a spinner
  */
-static void parse_spinner(char *line, struct oshu_spinner *spinner)
+static void parse_spinner(char *line, struct oshu_hit *hit)
 {
 	char *end_time = strsep(&line, ",");
-	spinner->end_time = (double) atoi(end_time) / 1000;
+	hit->spinner.end_time = (double) atoi(end_time) / 1000;
 }
 
 /**
  * Parse specific parts of a hold note
  */
-static void parse_hold_note(char *line, struct oshu_hold_note *hold_note)
+static void parse_hold_note(char *line, struct oshu_hit *hit)
 {
 	char *end_time = strsep(&line, ",");
-	hold_note->end_time = (double) atoi(end_time) / 1000;
+	hit->hold_note.end_time = (double) atoi(end_time) / 1000;
 }
 
 /**
@@ -202,10 +226,12 @@ static void parse_one_hit(char *line, struct oshu_hit **hit)
 	(*hit)->time = (double) atoi(time) / 1000;
 	(*hit)->type = atoi(type);
 	(*hit)->hit_sound = atoi(hit_sound);
+	if ((*hit)->type & OSHU_HIT_SLIDER)
+		parse_slider(line, *hit);
 	if ((*hit)->type & OSHU_HIT_SPINNER)
-		parse_spinner(line, &(*hit)->spinner);
+		parse_spinner(line, *hit);
 	if ((*hit)->type & OSHU_HIT_HOLD)
-		parse_hold_note(line, &(*hit)->hold_note);
+		parse_hold_note(line, *hit);
 }
 
 /**
